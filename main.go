@@ -29,7 +29,8 @@ func main() {
 }
 
 func showTelemetry(quit chan struct{}) {
-	t, _ := dirt.StartDefaultTelemetry()
+	tchan := make(chan dirt.TelemetryAccessor)
+	t, _ := dirt.GatherDefaultTelemetry(tchan)
 	defer t.Close()
 
 	timeLabel := createTelemetryBox("Total Time")
@@ -90,29 +91,29 @@ func showTelemetry(quit chan struct{}) {
 		case <-quit:
 			return
 
-		case <-t.OnFrameReceived():
-			timeLabel.Text = fmt.Sprintf("%v s", t.GetFieldValue(dirt.TotalTime))
-			lapTimeLabel.Text = fmt.Sprintf("%v s", t.GetFieldValue(dirt.LapTime))
-			lapDistance.Text = fmt.Sprintf("%v m", t.GetFieldValue(dirt.LapDistance))
-			speed.Text = fmt.Sprintf("%v m/s", t.GetFieldValue(dirt.Speed))
+		case td := <-tchan:
+			timeLabel.Text = fmt.Sprintf("%v s", td.GetFieldValue(dirt.TotalTime))
+			lapTimeLabel.Text = fmt.Sprintf("%v s", td.GetFieldValue(dirt.LapTime))
+			lapDistance.Text = fmt.Sprintf("%v m", td.GetFieldValue(dirt.LapDistance))
+			speed.Text = fmt.Sprintf("%v m/s", td.GetFieldValue(dirt.Speed))
 
-			posx.Text = fmt.Sprintf("%v m", t.GetFieldValue(dirt.PositionX))
-			posy.Text = fmt.Sprintf("%v m", t.GetFieldValue(dirt.PositionY))
-			posz.Text = fmt.Sprintf("%v m", t.GetFieldValue(dirt.PositionZ))
+			posx.Text = fmt.Sprintf("%v m", td.GetFieldValue(dirt.PositionX))
+			posy.Text = fmt.Sprintf("%v m", td.GetFieldValue(dirt.PositionY))
+			posz.Text = fmt.Sprintf("%v m", td.GetFieldValue(dirt.PositionZ))
 
-			velx.Text = fmt.Sprintf("%v m", t.GetFieldValue(dirt.VelocityX))
-			vely.Text = fmt.Sprintf("%v m", t.GetFieldValue(dirt.VelocityY))
-			velz.Text = fmt.Sprintf("%v m", t.GetFieldValue(dirt.VelocityZ))
+			velx.Text = fmt.Sprintf("%v m", td.GetFieldValue(dirt.VelocityX))
+			vely.Text = fmt.Sprintf("%v m", td.GetFieldValue(dirt.VelocityY))
+			velz.Text = fmt.Sprintf("%v m", td.GetFieldValue(dirt.VelocityZ))
 
-			suslf.Text = fmt.Sprintf("%v m", t.GetFieldValue(dirt.SuspensionPositionFrontLeft))
-			susrf.Text = fmt.Sprintf("%v m", t.GetFieldValue(dirt.SuspensionPositionFrontRight))
-			suslr.Text = fmt.Sprintf("%v m", t.GetFieldValue(dirt.SuspensionPositionBackLeft))
-			susrr.Text = fmt.Sprintf("%v m", t.GetFieldValue(dirt.SuspensionPositionBackRight))
+			suslf.Text = fmt.Sprintf("%v m", td.GetFieldValue(dirt.SuspensionPositionFrontLeft))
+			susrf.Text = fmt.Sprintf("%v m", td.GetFieldValue(dirt.SuspensionPositionFrontRight))
+			suslr.Text = fmt.Sprintf("%v m", td.GetFieldValue(dirt.SuspensionPositionBackLeft))
+			susrr.Text = fmt.Sprintf("%v m", td.GetFieldValue(dirt.SuspensionPositionBackRight))
 
-			throttle.Percent = int(t.GetFieldValue(dirt.ThrottleInput) * 100)
-			brake.Percent = int(t.GetFieldValue(dirt.BrakeInput) * 100)
+			throttle.Percent = int(td.GetFieldValue(dirt.ThrottleInput) * 100)
+			brake.Percent = int(td.GetFieldValue(dirt.BrakeInput) * 100)
 
-			rpmValue := t.GetFieldValue(dirt.EngineRate)
+			rpmValue := td.GetFieldValue(dirt.EngineRate)
 			rpm.Text = fmt.Sprintf("%v", rpmValue*9.5493)
 
 			ui.Render(ui.Body)
