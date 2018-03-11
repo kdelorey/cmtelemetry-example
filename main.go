@@ -35,7 +35,10 @@ func showTelemetry(quit chan struct{}) {
 	timeLabel := createTelemetryBox("Total Time", 0, 0)
 	lapTimeLabel := createTelemetryBox("Lap Time", 0, 4)
 	lapDistance := createTelemetryBox("Lap Distance", 26, 4)
+
 	speed := createTelemetryBox("Speed", 0, 8)
+	throttle := createTelemetryGauge("Throttle", 26, 8)
+	brake := createTelemetryGauge("Brake", 52, 8)
 
 	posx := createTelemetryBox("Position X", 0, 12)
 	posy := createTelemetryBox("Position Y", 26, 12)
@@ -65,7 +68,9 @@ func showTelemetry(quit chan struct{}) {
 			suslf,
 			suslr,
 			susrf,
-			susrr)
+			susrr,
+			throttle,
+			brake)
 	}
 
 	renderFunc()
@@ -94,6 +99,9 @@ func showTelemetry(quit chan struct{}) {
 			suslr.Text = fmt.Sprintf("%v m", t.GetFieldValue(dirt.SuspensionPositionBackLeft))
 			susrr.Text = fmt.Sprintf("%v m", t.GetFieldValue(dirt.SuspensionPositionBackRight))
 
+			throttle.Percent = int(t.GetFieldValue(dirt.ThrottleInput) * 100)
+			brake.Percent = int(t.GetFieldValue(dirt.BrakeInput) * 100)
+
 			renderFunc()
 			break
 		}
@@ -110,6 +118,20 @@ func createTelemetryBox(param string, x int, y int) *ui.Par {
 	p.TextFgColor = ui.ColorWhite
 	p.BorderFg = ui.ColorCyan
 	p.BorderLabel = param
+
+	return p
+}
+
+func createTelemetryGauge(param string, x int, y int) *ui.Gauge {
+	p := ui.NewGauge()
+
+	p.Height = 3
+	p.Width = 25
+	p.X = x
+	p.Y = y
+	p.BorderFg = ui.ColorCyan
+	p.BorderLabel = param
+	p.PercentColor = ui.ColorGreen
 
 	return p
 }
