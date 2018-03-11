@@ -92,34 +92,40 @@ func showTelemetry(quit chan struct{}) {
 			return
 
 		case td := <-tchan:
-			timeLabel.Text = fmt.Sprintf("%v s", td.GetFieldValue(dirt.TotalTime))
-			lapTimeLabel.Text = fmt.Sprintf("%v s", td.GetFieldValue(dirt.LapTime))
-			lapDistance.Text = fmt.Sprintf("%v m", td.GetFieldValue(dirt.LapDistance))
-			speed.Text = fmt.Sprintf("%v m/s", td.GetFieldValue(dirt.Speed))
+			timeLabel.Text = fmt.Sprintf("%v s", getFieldValueIgnoreError(td, dirt.TotalTime))
+			lapTimeLabel.Text = fmt.Sprintf("%v s", getFieldValueIgnoreError(td, dirt.LapTime))
+			lapDistance.Text = fmt.Sprintf("%v m", getFieldValueIgnoreError(td, dirt.LapDistance))
+			speed.Text = fmt.Sprintf("%v m/s", getFieldValueIgnoreError(td, dirt.Speed))
 
-			posx.Text = fmt.Sprintf("%v m", td.GetFieldValue(dirt.PositionX))
-			posy.Text = fmt.Sprintf("%v m", td.GetFieldValue(dirt.PositionY))
-			posz.Text = fmt.Sprintf("%v m", td.GetFieldValue(dirt.PositionZ))
+			posx.Text = fmt.Sprintf("%v m", getFieldValueIgnoreError(td, dirt.PositionX))
+			posy.Text = fmt.Sprintf("%v m", getFieldValueIgnoreError(td, dirt.PositionY))
+			posz.Text = fmt.Sprintf("%v m", getFieldValueIgnoreError(td, dirt.PositionZ))
 
-			velx.Text = fmt.Sprintf("%v m", td.GetFieldValue(dirt.VelocityX))
-			vely.Text = fmt.Sprintf("%v m", td.GetFieldValue(dirt.VelocityY))
-			velz.Text = fmt.Sprintf("%v m", td.GetFieldValue(dirt.VelocityZ))
+			velx.Text = fmt.Sprintf("%v m", getFieldValueIgnoreError(td, dirt.VelocityX))
+			vely.Text = fmt.Sprintf("%v m", getFieldValueIgnoreError(td, dirt.VelocityY))
+			velz.Text = fmt.Sprintf("%v m", getFieldValueIgnoreError(td, dirt.VelocityZ))
 
-			suslf.Text = fmt.Sprintf("%v m", td.GetFieldValue(dirt.SuspensionPositionFrontLeft))
-			susrf.Text = fmt.Sprintf("%v m", td.GetFieldValue(dirt.SuspensionPositionFrontRight))
-			suslr.Text = fmt.Sprintf("%v m", td.GetFieldValue(dirt.SuspensionPositionBackLeft))
-			susrr.Text = fmt.Sprintf("%v m", td.GetFieldValue(dirt.SuspensionPositionBackRight))
+			suslf.Text = fmt.Sprintf("%v m", getFieldValueIgnoreError(td, dirt.SuspensionPositionFrontLeft))
+			susrf.Text = fmt.Sprintf("%v m", getFieldValueIgnoreError(td, dirt.SuspensionPositionFrontRight))
+			suslr.Text = fmt.Sprintf("%v m", getFieldValueIgnoreError(td, dirt.SuspensionPositionBackLeft))
+			susrr.Text = fmt.Sprintf("%v m", getFieldValueIgnoreError(td, dirt.SuspensionPositionBackRight))
 
-			throttle.Percent = int(td.GetFieldValue(dirt.ThrottleInput) * 100)
-			brake.Percent = int(td.GetFieldValue(dirt.BrakeInput) * 100)
+			throttle.Percent = int(getFieldValueIgnoreError(td, dirt.ThrottleInput) * 100)
+			brake.Percent = int(getFieldValueIgnoreError(td, dirt.BrakeInput) * 100)
 
-			rpmValue := td.GetFieldValue(dirt.EngineRate)
+			rpmValue := getFieldValueIgnoreError(td, dirt.EngineRate)
 			rpm.Text = fmt.Sprintf("%v", rpmValue*9.5493)
 
 			ui.Render(ui.Body)
 			break
 		}
 	}
+}
+
+func getFieldValueIgnoreError(a dirt.TelemetryAccessor, field dirt.TelemetryField) float32 {
+	v, _ := a.GetFieldValue(field)
+
+	return v
 }
 
 func createTelemetryBox(param string) *ui.Par {
