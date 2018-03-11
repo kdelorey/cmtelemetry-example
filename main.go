@@ -32,48 +32,58 @@ func showTelemetry(quit chan struct{}) {
 	t, _ := dirt.StartDefaultTelemetry()
 	defer t.Close()
 
-	timeLabel := createTelemetryBox("Total Time", 0, 0)
-	lapTimeLabel := createTelemetryBox("Lap Time", 0, 4)
-	lapDistance := createTelemetryBox("Lap Distance", 26, 4)
+	timeLabel := createTelemetryBox("Total Time")
+	lapTimeLabel := createTelemetryBox("Lap Time")
+	lapDistance := createTelemetryBox("Lap Distance")
 
-	speed := createTelemetryBox("Speed", 0, 8)
-	throttle := createTelemetryGauge("Throttle", 26, 8)
-	brake := createTelemetryGauge("Brake", 52, 8)
+	speed := createTelemetryBox("Speed")
+	throttle := createTelemetryGauge("Throttle")
+	brake := createTelemetryGauge("Brake")
 
-	posx := createTelemetryBox("Position X", 0, 12)
-	posy := createTelemetryBox("Position Y", 26, 12)
-	posz := createTelemetryBox("Position Z", 52, 12)
+	rpm := createTelemetryBox("RPM")
 
-	velx := createTelemetryBox("Velocity X", 0, 16)
-	vely := createTelemetryBox("Velocity Y", 26, 16)
-	velz := createTelemetryBox("Velocity Z", 52, 16)
+	posx := createTelemetryBox("Position X")
+	posy := createTelemetryBox("Position Y")
+	posz := createTelemetryBox("Position Z")
 
-	suslf := createTelemetryBox("Suspension LF", 0, 21)
-	susrf := createTelemetryBox("Suspension RF", 26, 21)
-	suslr := createTelemetryBox("Suspension LR", 0, 25)
-	susrr := createTelemetryBox("Suspension RR", 26, 25)
+	velx := createTelemetryBox("Velocity X")
+	vely := createTelemetryBox("Velocity Y")
+	velz := createTelemetryBox("Velocity Z")
 
-	renderFunc := func() {
-		ui.Render(
-			timeLabel,
-			lapTimeLabel,
-			lapDistance,
-			speed,
-			posx,
-			posy,
-			posz,
-			velx,
-			vely,
-			velz,
-			suslf,
-			suslr,
-			susrf,
-			susrr,
-			throttle,
-			brake)
-	}
+	suslf := createTelemetryBox("Suspension LF")
+	susrf := createTelemetryBox("Suspension RF")
+	suslr := createTelemetryBox("Suspension LR")
+	susrr := createTelemetryBox("Suspension RR")
 
-	renderFunc()
+	ui.Body.AddRows(
+		ui.NewRow(
+			ui.NewCol(3, 0, timeLabel),
+			ui.NewCol(3, 1, lapTimeLabel),
+			ui.NewCol(3, 1, lapDistance),
+		),
+		ui.NewRow(
+			ui.NewCol(3, 0, speed),
+			ui.NewCol(3, 1, throttle),
+			ui.NewCol(3, 1, brake),
+		),
+		ui.NewRow(
+			ui.NewCol(3, 0, rpm),
+		),
+		ui.NewRow(
+			ui.NewCol(3, 0, velx),
+			ui.NewCol(3, 1, vely),
+			ui.NewCol(3, 1, velz),
+		),
+		ui.NewRow(
+			ui.NewCol(3, 0, posx),
+			ui.NewCol(3, 1, posy),
+			ui.NewCol(3, 1, posz),
+		),
+	)
+
+	ui.Body.Align()
+
+	ui.Render(ui.Body)
 
 	for {
 		select {
@@ -102,19 +112,20 @@ func showTelemetry(quit chan struct{}) {
 			throttle.Percent = int(t.GetFieldValue(dirt.ThrottleInput) * 100)
 			brake.Percent = int(t.GetFieldValue(dirt.BrakeInput) * 100)
 
-			renderFunc()
+			rpmValue := t.GetFieldValue(dirt.EngineRate)
+			rpm.Text = fmt.Sprintf("%v", rpmValue*9.5493)
+
+			ui.Render(ui.Body)
 			break
 		}
 	}
 }
 
-func createTelemetryBox(param string, x int, y int) *ui.Par {
+func createTelemetryBox(param string) *ui.Par {
 	p := ui.NewPar("?")
 
 	p.Height = 3
 	p.Width = 25
-	p.X = x
-	p.Y = y
 	p.TextFgColor = ui.ColorWhite
 	p.BorderFg = ui.ColorCyan
 	p.BorderLabel = param
@@ -122,13 +133,11 @@ func createTelemetryBox(param string, x int, y int) *ui.Par {
 	return p
 }
 
-func createTelemetryGauge(param string, x int, y int) *ui.Gauge {
+func createTelemetryGauge(param string) *ui.Gauge {
 	p := ui.NewGauge()
 
 	p.Height = 3
 	p.Width = 25
-	p.X = x
-	p.Y = y
 	p.BorderFg = ui.ColorCyan
 	p.BorderLabel = param
 	p.PercentColor = ui.ColorGreen
